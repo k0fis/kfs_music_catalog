@@ -1,5 +1,23 @@
 # kfs_music_catalog
 
+`git clone https://github.com/k0fis/kfs_music_catalog.git`
+
+## install non-interactive:
+
+`./install.sh /Volumes/music ab ~/bin "Audiobooks*"`
+
+```bash
+./install.sh ~/arxive/books books ~/arxive/catalog books
+```
+
+## install with interactive
+
+``` bash
+./install.sh
+```
+
+---
+
 ## scan folders
 
 ``` bash
