@@ -4,7 +4,9 @@
 
 ## install non-interactive:
 
-`./install.sh /Volumes/music ab ~/bin "Audiobooks*"`
+```bash
+./install.sh /Volumes/music ab ~/arxive/catalog "Audiobooks*"
+```
 
 ```bash
 ./install.sh ~/arxive/books books ~/arxive/catalog books
