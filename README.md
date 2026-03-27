@@ -1,75 +1,83 @@
 # kfs_music_catalog
 
-`git clone https://github.com/k0fis/kfs_music_catalog.git`
+Catalog and search tool for media libraries. Two parts:
 
-## install non-interactive:
+1. **Client (macOS)** - bash + fzf for local fuzzy search
+2. **Server (k-server)** - web-based fuzzy search via browser
+
+## Client - local fzf search
+
+### Install
 
 ```bash
-./install.sh /Volumes/music ab ~/arxive/catalog "Audiobooks*"
-```
+git clone https://github.com/k0fis/kfs_music_catalog.git
+cd kfs_music_catalog
 
-```bash
-./install.sh ~/arxive/books books ~/arxive/catalog books
-```
+# non-interactive
+./install.sh /Volumes/music ab ~/bin "Audiobooks*"
 
-## install with interactive
-
-``` bash
+# interactive
 ./install.sh
 ```
 
----
+### Usage
 
-## scan folders
-
-``` bash
-#!/bin/bash
-
-ROOT="/Volumes/music"
-OUT="$HOME/arxive/catalog/audiobooks.index"
-
-> "$OUT"
-
-find "$ROOT" -maxdepth 1 -type d -iname "Audiobooks*" | while read abdir
-do
-    # Autor - Audiokniha
-    find "$abdir" -mindepth 1 -maxdepth 1 -type d | while read d1
-    do
-        name=$(basename "$d1")
-
-        # pokud obsahuje další podsložky -> Autor/Audiokniha
-        sub=$(find "$d1" -mindepth 1 -maxdepth 1 -type d | head -n1)
-
-        if [ -n "$sub" ]; then
-            find "$d1" -mindepth 1 -maxdepth 1 -type d | while read d2
-            do
-                author=$(basename "$d1")
-                book=$(basename "$d2")
-
-                echo "$author - $book|$d2" >> "$OUT"
-            done
-        else
-            echo "$name|$d1" >> "$OUT"
-        fi
-    done
-
-done
-
-echo "Indexed -> $OUT"
+```bash
+scan_ab        # reindex
+find_ab        # fuzzy search
+find_ab "King" # pre-filtered search
 ```
 
-## find
+## Server - web catalog
 
-``` bash
-#!/bin/bash
+Web-based fuzzy search for k-server. Indexes all media from `/media/storage/`.
 
-INDEX="$HOME/arxive/catalog/audiobooks.index"
+### Categories (auto-indexed)
+- audiobooks, music, comix, books, pohadky, movies, movies_doc
 
-sel=$(cut -d'|' -f1 "$INDEX" | fzf --query $1 --select-1  --exit-0)
-
-[ -z "$sel" ] && exit
-
-path=$(grep "^$sel|" "$INDEX" | head -n1 | cut -d'|' -f2)
-
-open "$path"
+### Manual catalogs
+Files in `/opt/catalog/manual/*.catalog`:
 ```
+# Format: name|note
+Blade Runner 2049|4K UHD
+Interstellar|Blu-ray
+```
+
+### Install / Update
+
+```bash
+# First install (or update to latest release)
+curl -sL https://raw.githubusercontent.com/k0fis/kfs_music_catalog/main/server/server-install.sh | bash
+
+# Or download and run manually
+wget https://raw.githubusercontent.com/k0fis/kfs_music_catalog/main/server/server-install.sh
+bash server-install.sh
+```
+
+### Manual reindex
+
+```bash
+/opt/catalog/indexer.sh /var/www/html/catalog
+```
+
+### Structure on server
+```
+/opt/catalog/
+  indexer.sh          - index generator (cron every 6h)
+  manual/             - manual catalogs (*.catalog)
+  VERSION             - installed version
+  last-index.log      - last indexer output
+
+/var/www/html/catalog/
+  index.html          - web frontend (fuse.js)
+  data.json           - generated index
+```
+
+## Release
+
+Tag a version to create a release:
+```bash
+git tag v1.0.0
+git push origin v1.0.0
+```
+GitHub Actions builds `server.tar.gz` and attaches it to the release.
