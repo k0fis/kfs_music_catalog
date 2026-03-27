@@ -83,6 +83,10 @@ mkdir -p "$MANUAL_DIR"
 cp "$TMP/server/indexer.sh" "$INSTALL_DIR/indexer.sh"
 chmod +x "$INSTALL_DIR/indexer.sh"
 
+# Aktualizuj sam sebe (update-catalog.sh)
+cp "$TMP/server/server-install.sh" "$INSTALL_DIR/update-catalog.sh"
+chmod +x "$INSTALL_DIR/update-catalog.sh"
+
 # Aktualizuj web
 cp "$TMP/server/web/index.html" "$WEB_DIR/index.html"
 
