@@ -12,16 +12,25 @@ REPO="k0fis/kfs_music_catalog"
 INSTALL_DIR="/opt/catalog"
 WEB_DIR="/var/www/html/catalog"
 MANUAL_DIR="$INSTALL_DIR/manual"
+TOKEN_FILE="/opt/.github-token"
 
 # --- Funkce ---
 
+gh_curl() {
+    if [ -f "$TOKEN_FILE" ]; then
+        curl -sL -H "Authorization: token $(cat "$TOKEN_FILE")" "$@"
+    else
+        curl -sL "$@"
+    fi
+}
+
 get_latest_version() {
-    curl -sL "https://api.github.com/repos/$REPO/releases/latest" | \
+    gh_curl "https://api.github.com/repos/$REPO/releases/latest" | \
         grep '"tag_name"' | cut -d'"' -f4
 }
 
 get_download_url() {
-    curl -sL "https://api.github.com/repos/$REPO/releases/latest" | \
+    gh_curl "https://api.github.com/repos/$REPO/releases/latest" | \
         grep '"browser_download_url".*server\.tar\.gz' | cut -d'"' -f4
 }
 
@@ -71,7 +80,7 @@ fi
 
 echo "Stahuji: $URL"
 TMP=$(mktemp -d)
-curl -sL "$URL" -o "$TMP/server.tar.gz"
+gh_curl "$URL" -o "$TMP/server.tar.gz"
 tar xzf "$TMP/server.tar.gz" -C "$TMP"
 
 echo "Instaluji..."
