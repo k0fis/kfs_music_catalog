@@ -236,7 +236,7 @@ mark {
         let stats = data.count + ' polozek | aktualizovano ' +
             date.toLocaleDateString('cs') + ' ' + date.toLocaleTimeString('cs');
         fetch('VERSION').then(r=>r.ok?r.text():Promise.reject()).then(v=>{
-            document.getElementById('stats').textContent = stats + ' | v' + v.trim();
+            document.getElementById('stats').textContent = stats + ' | ' + v.trim();
         }).catch(()=>{
             document.getElementById('stats').textContent = stats;
         });
