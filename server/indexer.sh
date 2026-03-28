@@ -7,6 +7,7 @@
 
 STORAGE="${CATALOG_STORAGE:-/media/storage}"
 MANUAL_DIR="${CATALOG_MANUAL:-/opt/catalog/manual}"
+VERSION_FILE="${CATALOG_VERSION:-/opt/catalog/VERSION}"
 OUT_DIR="${1:-/var/www/html/catalog}"
 
 mkdir -p "$OUT_DIR"
@@ -85,8 +86,14 @@ if [ -d "$STORAGE/books/books" ]; then
         author=$(basename "$author_dir")
         for book_dir in "$author_dir"/*/; do
             [ -d "$book_dir" ] || continue
-            book=$(basename "$book_dir" | sed 's/ ([0-9]*)$//')
-            emit_item "$author - $book" "books" "$book_dir" "/books/" >> "$TMPFILE"
+            book_raw=$(basename "$book_dir")
+            book=$(echo "$book_raw" | sed 's/ ([0-9]*)$//')
+            book_id=$(echo "$book_raw" | sed -n 's/.* (\([0-9]*\))$/\1/p')
+            if [ -n "$book_id" ]; then
+                emit_item "$author - $book" "books" "$book_dir" "/books/book/$book_id" >> "$TMPFILE"
+            else
+                emit_item "$author - $book" "books" "$book_dir" "/books/" >> "$TMPFILE"
+            fi
         done
     done
 fi
@@ -121,8 +128,8 @@ if [ -d "$MANUAL_DIR" ]; then
         while IFS='|' read -r name note; do
             [ -z "$name" ] && continue
             [[ "$name" == \#* ]] && continue
-            local link=""
-            local display="$name"
+            link=""
+            display="$name"
             if [[ "$note" == /* || "$note" == http* ]]; then
                 link="$note"
             elif [ -n "$note" ]; then
@@ -146,4 +153,8 @@ echo "Celkem $COUNT polozek"
 } > "$OUT_DIR/data.json"
 
 rm -f "$TMPFILE"
+
+# Zkopiruj VERSION do web adresare
+[ -f "$VERSION_FILE" ] && cp "$VERSION_FILE" "$OUT_DIR/VERSION"
+
 echo "Zapsano do $OUT_DIR/data.json"
