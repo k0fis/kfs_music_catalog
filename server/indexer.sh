@@ -121,9 +121,14 @@ if [ -d "$MANUAL_DIR" ]; then
         while IFS='|' read -r name note; do
             [ -z "$name" ] && continue
             [[ "$name" == \#* ]] && continue
-            display="$name"
-            [ -n "$note" ] && display="$name ($note)"
-            emit_item "$display" "$category" "" "" >> "$TMPFILE"
+            local link=""
+            local display="$name"
+            if [[ "$note" == /* || "$note" == http* ]]; then
+                link="$note"
+            elif [ -n "$note" ]; then
+                display="$name ($note)"
+            fi
+            emit_item "$display" "$category" "" "$link" >> "$TMPFILE"
         done < "$catalog_file"
     done
 fi
