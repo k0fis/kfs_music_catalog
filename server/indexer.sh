@@ -78,24 +78,28 @@ for serie_dir in "$STORAGE"/comix/*/; do
     done
 done
 
-# 4. Books (Calibre: Autor/Kniha)
-echo "Indexuji books..."
-if [ -d "$STORAGE/books/books" ]; then
-    for author_dir in "$STORAGE"/books/books/*/; do
-        [ -d "$author_dir" ] || continue
-        author=$(basename "$author_dir")
-        for book_dir in "$author_dir"/*/; do
-            [ -d "$book_dir" ] || continue
-            book_raw=$(basename "$book_dir")
-            book=$(echo "$book_raw" | sed 's/ ([0-9]*)$//')
-            book_id=$(echo "$book_raw" | sed -n 's/.* (\([0-9]*\))$/\1/p')
-            if [ -n "$book_id" ]; then
-                emit_item "$author - $book" "books" "$book_dir" "/books/book/$book_id" >> "$TMPFILE"
-            else
-                emit_item "$author - $book" "books" "$book_dir" "/books/" >> "$TMPFILE"
-            fi
+# 4. Books (preskoc pokud existuje manualni books.catalog)
+if [ -f "$MANUAL_DIR/books.catalog" ]; then
+    echo "Books: pouzivam manualni books.catalog, preskakuji auto-index"
+else
+    echo "Indexuji books..."
+    if [ -d "$STORAGE/books/books" ]; then
+        for author_dir in "$STORAGE"/books/books/*/; do
+            [ -d "$author_dir" ] || continue
+            author=$(basename "$author_dir")
+            for book_dir in "$author_dir"/*/; do
+                [ -d "$book_dir" ] || continue
+                book_raw=$(basename "$book_dir")
+                book=$(echo "$book_raw" | sed 's/ ([0-9]*)$//')
+                book_id=$(echo "$book_raw" | sed -n 's/.* (\([0-9]*\))$/\1/p')
+                if [ -n "$book_id" ]; then
+                    emit_item "$author - $book" "books" "$book_dir" "/books/#$book_id" >> "$TMPFILE"
+                else
+                    emit_item "$author - $book" "books" "$book_dir" "/books/" >> "$TMPFILE"
+                fi
+            done
         done
-    done
+    fi
 fi
 
 # 5. Pohadky (flat)
