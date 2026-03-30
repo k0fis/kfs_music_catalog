@@ -65,18 +65,22 @@ for music_dir in "$STORAGE"/music/Music*; do
     done
 done
 
-# 3. Comix (Serie + soubory)
-echo "Indexuji comix..."
-for serie_dir in "$STORAGE"/comix/*/; do
-    [ -d "$serie_dir" ] || continue
-    serie=$(basename "$serie_dir")
-    emit_item "$serie" "comix" "$serie_dir" "/comix/" >> "$TMPFILE"
-    find "$serie_dir" -maxdepth 1 \( -name "*.cbz" -o -name "*.cbr" -o -name "*.pdf" \) -print0 2>/dev/null | \
-    while IFS= read -r -d '' f; do
-        fname=$(basename "$f" | sed 's/\.\(cbz\|cbr\|pdf\)$//')
-        emit_item "$fname" "comix" "$f" "/comix/" >> "$TMPFILE"
+# 3. Comix (preskoc pokud existuje manualni comix.catalog)
+if [ -f "$MANUAL_DIR/comix.catalog" ]; then
+    echo "Comix: pouzivam manualni comix.catalog, preskakuji auto-index"
+else
+    echo "Indexuji comix..."
+    for serie_dir in "$STORAGE"/comix/*/; do
+        [ -d "$serie_dir" ] || continue
+        serie=$(basename "$serie_dir")
+        emit_item "$serie" "comix" "$serie_dir" "/comix/" >> "$TMPFILE"
+        find "$serie_dir" -maxdepth 1 \( -name "*.cbz" -o -name "*.cbr" -o -name "*.pdf" \) -print0 2>/dev/null | \
+        while IFS= read -r -d '' f; do
+            fname=$(basename "$f" | sed 's/\.\(cbz\|cbr\|pdf\)$//')
+            emit_item "$fname" "comix" "$f" "/comix/" >> "$TMPFILE"
+        done
     done
-done
+fi
 
 # 4. Books (preskoc pokud existuje manualni books.catalog)
 if [ -f "$MANUAL_DIR/books.catalog" ]; then
