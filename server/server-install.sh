@@ -10,7 +10,6 @@ set -e
 
 REPO="k0fis/kfs_music_catalog"
 INSTALL_DIR="/opt/catalog"
-WEB_DIR="/var/www/html/catalog"
 MANUAL_DIR="$INSTALL_DIR/manual"
 TOKEN_FILE="/opt/.github-token"
 
@@ -39,7 +38,7 @@ get_installed_version() {
 }
 
 setup_cron() {
-    local CRON_LINE="7 */6 * * * $INSTALL_DIR/indexer.sh $WEB_DIR > $INSTALL_DIR/last-index.log 2>&1"
+    local CRON_LINE="7 */6 * * * $INSTALL_DIR/indexer.sh /var/www/html/catalog > $INSTALL_DIR/last-index.log 2>&1"
     (crontab -l 2>/dev/null | grep -v "indexer.sh"; echo "$CRON_LINE") | crontab -
     echo "Cron nastaven: kazdych 6 hodin"
 }
@@ -85,7 +84,6 @@ tar xzf "$TMP/server.tar.gz" -C "$TMP"
 
 echo "Instaluji..."
 mkdir -p "$INSTALL_DIR"
-mkdir -p "$WEB_DIR"
 mkdir -p "$MANUAL_DIR"
 
 # Aktualizuj indexer
@@ -95,9 +93,6 @@ chmod +x "$INSTALL_DIR/indexer.sh"
 # Aktualizuj sam sebe (update-catalog.sh)
 cp "$TMP/server/server-install.sh" "$INSTALL_DIR/update-catalog.sh"
 chmod +x "$INSTALL_DIR/update-catalog.sh"
-
-# Aktualizuj web
-cp "$TMP/server/web/index.html" "$WEB_DIR/index.html"
 
 # Manualni katalogy - jen priklad, neprepise existujici
 for example in "$TMP"/server/manual/*.catalog.example; do
@@ -116,9 +111,9 @@ echo "$LATEST" > "$INSTALL_DIR/VERSION"
 setup_cron
 
 # Prvni indexace (pokud jeste neni data.json)
-if [ ! -f "$WEB_DIR/data.json" ]; then
+if [ ! -f "/var/www/html/catalog/data.json" ]; then
     echo "Spoustim prvni indexaci..."
-    bash "$INSTALL_DIR/indexer.sh" "$WEB_DIR"
+    bash "$INSTALL_DIR/indexer.sh" /var/www/html/catalog
 fi
 
 # Cleanup
@@ -127,6 +122,6 @@ rm -rf "$TMP"
 echo ""
 echo "=== Hotovo ==="
 echo "Verze: $LATEST"
-echo "Web: https://k-server.local/catalog/"
+echo "Web: catalog/index.html je nyni v k-server-web"
 echo "Manualni katalogy: $MANUAL_DIR/"
-echo "Reindexace: $INSTALL_DIR/indexer.sh $WEB_DIR"
+echo "Reindexace: $INSTALL_DIR/indexer.sh /var/www/html/catalog"
