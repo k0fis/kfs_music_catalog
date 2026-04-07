@@ -30,6 +30,27 @@ smb_link() {
     echo "$1" | sed "s|^$STORAGE/|smb://k-server.local/Share/|"
 }
 
+# KAP deep links — SHA-1 hash matching music-indexer.py / audiobooks-indexer.py
+kap_lower() {
+    printf '%s' "$1" | tr '[:upper:]' '[:lower:]' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//'
+}
+
+kap_artist_link() {
+    local mode="$1" name="$2"
+    local lower=$(kap_lower "$name")
+    local hash=$(printf '%s' "$lower" | sha1sum | cut -c1-10)
+    printf '/kap/?mode=%s#artist/a-%s' "$mode" "$hash"
+}
+
+kap_album_link() {
+    local artist="$1" album="$2"
+    local a_lower=$(kap_lower "$artist")
+    local b_lower=$(kap_lower "$album")
+    local a_hash=$(printf '%s' "$a_lower" | sha1sum | cut -c1-10)
+    local ab_hash=$(printf '%s/%s' "$a_lower" "$b_lower" | sha1sum | cut -c1-10)
+    printf '/kap/?mode=audiobooks#album/a-%s/al-%s' "$a_hash" "$ab_hash"
+}
+
 # --- Sber polozek ---
 
 TMPFILE=$(mktemp)
@@ -46,10 +67,10 @@ for ab_dir in "$STORAGE"/music/Audiobooks*; do
             for book_dir in "$author_dir"/*/; do
                 [ -d "$book_dir" ] || continue
                 book=$(basename "$book_dir")
-                emit_item "$author - $book" "audiobooks" "$book_dir" "$(smb_link "$book_dir")" >> "$TMPFILE"
+                emit_item "$author - $book" "audiobooks" "$book_dir" "$(kap_album_link "$author" "$book")" >> "$TMPFILE"
             done
         else
-            emit_item "$author" "audiobooks" "$author_dir" "$(smb_link "$author_dir")" >> "$TMPFILE"
+            emit_item "$author" "audiobooks" "$author_dir" "$(kap_artist_link audiobooks "$author")" >> "$TMPFILE"
         fi
     done
 done
@@ -61,7 +82,7 @@ for music_dir in "$STORAGE"/music/Music*; do
     for artist_dir in "$music_dir"/*/; do
         [ -d "$artist_dir" ] || continue
         artist=$(basename "$artist_dir")
-        emit_item "$artist" "music" "$artist_dir" "$(smb_link "$artist_dir")" >> "$TMPFILE"
+        emit_item "$artist" "music" "$artist_dir" "$(kap_artist_link music "$artist")" >> "$TMPFILE"
     done
 done
 
