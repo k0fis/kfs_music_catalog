@@ -55,9 +55,9 @@ kap_album_link() {
 
 TMPFILE=$(mktemp)
 
-# 1. Audiobooks (Autor/Kniha, vice kategorii Audiobooks*)
+# 1. Audiobooks (Autor/Kniha, vice kategorii Audiobooks* + Fun + Lenka)
 echo "Indexuji audiobooks..."
-for ab_dir in "$STORAGE"/music/Audiobooks*; do
+for ab_dir in "$STORAGE"/music/Audiobooks* "$STORAGE"/music/Fun "$STORAGE"/music/Lenka; do
     [ -d "$ab_dir" ] || continue
     for author_dir in "$ab_dir"/*/; do
         [ -d "$author_dir" ] || continue
