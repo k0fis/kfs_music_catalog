@@ -32,7 +32,7 @@ smb_link() {
 
 # KAP deep links — SHA-1 hash matching music-indexer.py / audiobooks-indexer.py
 kap_lower() {
-    printf '%s' "$1" | tr '[:upper:]' '[:lower:]' | sed 's/^[[:space:]]*//;s/[[:space:]]*$//'
+    python3 -c "import sys; print(sys.argv[1].strip().lower(), end='')" "$1"
 }
 
 kap_artist_link() {
