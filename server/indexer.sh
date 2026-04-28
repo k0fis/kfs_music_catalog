@@ -169,6 +169,20 @@ if [ -d "$MANUAL_DIR" ]; then
     done
 fi
 
+# 9. Inventory (z PostgreSQL)
+echo "Indexuji inventory..."
+psql -U kofis -d inventory -t -A -F'|' -c \
+    "SELECT name, brand, model, id FROM devices ORDER BY name" 2>/dev/null | \
+while IFS='|' read -r name brand model dev_id; do
+    [ -z "$name" ] && continue
+    display="$name"
+    if [ -n "$brand" ] && [ -n "$model" ]; then
+        display="$brand $model"
+        [ "$name" != "$brand $model" ] && display="$name ($brand $model)"
+    fi
+    emit_item "$display" "inventory" "" "/inventory/#$dev_id" >> "$TMPFILE"
+done
+
 # --- Vystup ---
 
 COUNT=$(wc -l < "$TMPFILE" | tr -d ' ')
